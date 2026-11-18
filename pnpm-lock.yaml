@@ -327,9 +327,6 @@ catalogs:
     happy-dom:
       specifier: ^21.0.4
       version: 21.0.4
-    hono:
-      specifier: ^4.13.19
-      version: 4.13.19
     ignore:
       specifier: ^7.0.14
       version: 7.0.14
@@ -436,9 +433,6 @@ catalogs:
     '@cloudflare/workers-types':
       specifier: ^5.20261117.1
       version: 5.20261117.1
-    hono:
-      specifier: 4.13.19
-      version: 4.13.19
     wrangler:
       specifier: ^4.163.0
       version: 4.163.0
@@ -455,6 +449,7 @@ overrides:
   '@vitest/utils': 5.1.0
   esbuild: ^0.28.2
   react-server-dom-webpack: 19.3.1
+  hono: link:../hono-jsx-fixes
   vite@*: npm:@voidzero-dev/vite-plus-core@8.3.8000
 
 packageExtensionsChecksum: sha256-QGjhjlycyKugWQ0XwxmRPrta6i2y2nxwCh88ULzifqQ=
@@ -862,8 +857,8 @@ importers:
         specifier: ^4.0.3
         version: 4.0.3
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       ignore:
         specifier: 'catalog:'
         version: 7.0.14
@@ -1068,8 +1063,8 @@ importers:
         specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261117.1)(@electric-sql/pglite@0.5.16)(@types/better-sqlite3@9.6.0)(@types/pg@8.23.1)(better-sqlite3@13.2.0)(kysely@0.29.9)(mysql2@3.24.6(@types/node@26.6.6))(pg@8.23.1)
       hono:
-        specifier: catalog:platform
-        version: 4.13.19
+        specifier: link:../../../../hono-jsx-fixes
+        version: link:../../../../hono-jsx-fixes
       jose:
         specifier: 'catalog:'
         version: 6.2.17
@@ -1153,8 +1148,8 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/platform
       hono:
-        specifier: catalog:platform
-        version: 4.13.19
+        specifier: link:../../../../hono-jsx-fixes
+        version: link:../../../../hono-jsx-fixes
       lucide-react:
         specifier: 'catalog:'
         version: 1.73.0(@types/react@19.3.0)(react@19.3.1)
@@ -1273,8 +1268,8 @@ importers:
         specifier: ^2.0.4
         version: 2.0.4
       hono:
-        specifier: catalog:platform
-        version: 4.13.19
+        specifier: link:../../../../hono-jsx-fixes
+        version: link:../../../../hono-jsx-fixes
     devDependencies:
       '@cloudflare/workers-types':
         specifier: catalog:platform
@@ -1397,10 +1392,10 @@ importers:
     dependencies:
       '@hono/node-server':
         specifier: 'catalog:'
-        version: 2.1.8(hono@4.13.19)
+        version: 2.1.8(hono@hono-jsx-fixes)
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1433,8 +1428,8 @@ importers:
   playground/kitchen-sink:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       valibot:
         specifier: ^1.5.0
         version: 1.5.0(typescript@7.0.2)
@@ -1501,8 +1496,8 @@ importers:
   playground/named-layouts:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1539,10 +1534,10 @@ importers:
     dependencies:
       '@hono/node-server':
         specifier: 'catalog:'
-        version: 2.1.8(hono@4.13.19)
+        version: 2.1.8(hono@hono-jsx-fixes)
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1573,10 +1568,10 @@ importers:
     dependencies:
       '@hono/node-server':
         specifier: 'catalog:'
-        version: 2.1.8(hono@4.13.19)
+        version: 2.1.8(hono@hono-jsx-fixes)
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1607,10 +1602,10 @@ importers:
     dependencies:
       '@hono/node-server':
         specifier: 'catalog:'
-        version: 2.1.8(hono@4.13.19)
+        version: 2.1.8(hono@hono-jsx-fixes)
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1683,8 +1678,8 @@ importers:
   playground/pg-test:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1720,8 +1715,8 @@ importers:
   playground/react-pages:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1788,8 +1783,8 @@ importers:
   playground/server-auth-errors:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1823,10 +1818,10 @@ importers:
     dependencies:
       '@hono/node-server':
         specifier: 'catalog:'
-        version: 2.1.8(hono@4.13.19)
+        version: 2.1.8(hono@hono-jsx-fixes)
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: 'catalog:'
@@ -1844,8 +1839,8 @@ importers:
   playground/solid-pages:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       solid-js:
         specifier: 'catalog:'
         version: 1.9.19
@@ -1872,8 +1867,8 @@ importers:
   playground/spa:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1909,8 +1904,8 @@ importers:
   playground/ssr:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1943,8 +1938,8 @@ importers:
   playground/static-pages:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       vue:
         specifier: 'catalog:'
         version: 3.5.45(typescript@7.0.2)
@@ -1965,8 +1960,8 @@ importers:
   playground/svelte-pages:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       svelte:
         specifier: 'catalog:'
         version: 5.57.3
@@ -2129,8 +2124,8 @@ importers:
   playground/vue-pages:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       valibot:
         specifier: ^1.5.0
         version: 1.5.0(typescript@7.0.2)
@@ -2157,8 +2152,8 @@ importers:
   playground/websockets:
     dependencies:
       hono:
-        specifier: 'catalog:'
-        version: 4.13.19
+        specifier: link:../../../hono-jsx-fixes
+        version: link:../../../hono-jsx-fixes
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -7923,10 +7918,6 @@ packages:
     resolution: {integrity: sha512-Ox1pJVrDCyGHMG9CFg1tmrRUMRPRsAWYc/PinY0XzJU4K7y7vjNoLKIQ7BR5UJMCxNN8EM1MNDmHWA/B3aZUuw==}
     engines: {node: '>=6'}
 
-  hono@4.13.19:
-    resolution: {integrity: sha512-KmXvQAXwcAHV+muzbIwoJ23niEB5nMoDVr9WcRkU8mvjUECm/1+7v4Jgp7P7a+H6MLFrh+vXrGonGrGS+RQfkA==}
-    engines: {node: '>=16.9.0'}
-
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
 
@@ -12026,9 +12017,9 @@ snapshots:
   '@harperfast/extended-iterable@1.0.5':
     optional: true
 
-  '@hono/node-server@2.1.8(hono@4.13.19)':
+  '@hono/node-server@2.1.8(hono@hono-jsx-fixes)':
     dependencies:
-      hono: 4.13.19
+      hono: link:../hono-jsx-fixes
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -16183,8 +16174,6 @@ snapshots:
       hermes-estree: 0.25.1
 
   hex-rgb@4.3.0: {}
-
-  hono@4.13.19: {}
 
   hookable@5.5.3: {}
 
