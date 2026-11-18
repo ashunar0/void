@@ -11,7 +11,12 @@ import {
   toLayoutId,
 } from '../pages/layout-resolution.ts';
 import { patternToRegex } from '../pages/manifest.ts';
-import { SERVER_VIEW_QUERY, serverViewStyleId } from '../pages/server-components-plugin.ts';
+import {
+  SERVER_ISLANDS_CLIENT_ENTRY_ID,
+  SERVER_VIEW_QUERY,
+  serverIslandPages,
+  serverViewStyleId,
+} from '../pages/server-components-plugin.ts';
 import { cloudflareQueueName, type CloudflareQueueNames } from '../queues/cloudflare-names.ts';
 import { generateQueueResolverSource } from '../queues/dispatch.ts';
 import { INTERNAL_BINDING_EXACT_NAMES, INTERNAL_BINDING_PREFIXES } from '../runtime/env/raw.ts';
@@ -20,6 +25,17 @@ import { DEFAULT_SANDBOX_CLASS_NAME } from '../sandbox/config.ts';
 import type { ScanResult } from './scan.ts';
 
 const FETCH_SERVER_PATH = fileURLToPath(import.meta.resolve('#self/runtime/fetch-server'));
+function serverIslandAssets(scan: ScanResult['pages'], pagesDir: string) {
+  const islandPages = serverIslandPages(scan, pagesDir);
+  return islandPages.length
+    ? {
+        islandPages,
+        entryId: SERVER_ISLANDS_CLIENT_ENTRY_ID,
+        entryUrl: '/@id/__x00__' + SERVER_ISLANDS_CLIENT_ENTRY_ID,
+      }
+    : {};
+}
+
 const ROUTING_RUNTIME_PATH = fileURLToPath(import.meta.resolve('#self/runtime/routing'));
 
 function pushDefaultErrorPageHelpers(lines: Array<string>, options: CompileOptions): void {
@@ -1164,7 +1180,7 @@ function compilePageRoutes(
   const devCssOption = options.dev ? ', devCss: getVoidPagesDevCss' : '';
   if (serverPages.length || serverPlans.length) {
     lines.push(
-      `const getServerViewAssets = __createClientAssetTags({ ...${JSON.stringify({ kind: 'server-view', pageCssKeys: serverCssKeys, devRootPhases: options.dev ? serverDevRoots : undefined, dev: options.dev === true })}${devCssOption} }, __loadPagesManifest);`,
+      `const getServerViewAssets = __createClientAssetTags({ ...${JSON.stringify({ kind: 'server-view', pageCssKeys: serverCssKeys, devRootPhases: options.dev ? serverDevRoots : undefined, dev: options.dev === true, ...serverIslandAssets(scan.pages, pages.pagesDir) })}${devCssOption} }, __loadPagesManifest);`,
     );
   }
   lines.push(

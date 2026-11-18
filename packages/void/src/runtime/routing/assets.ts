@@ -94,6 +94,8 @@ export type ClientAssetOptions = {
   pageCssKeys?: Record<string, Array<string>>;
   devRootPhases?: Record<string, Array<Array<string>>>;
   kind: 'ssr' | 'pages' | 'islands' | 'server-view';
+  /** Server views that load the islands client entry (`entryId`). */
+  islandPages?: Array<string>;
   dev?: boolean;
   reactRefresh?: boolean;
   devCss?: (
@@ -169,18 +171,33 @@ export function createClientAssetTags(
   return async (request, env, componentId = '') => {
     const empty = { css: '', preloads: '', body: '' };
     if (options.kind === 'server-view') {
+      const islands = options.entryId && options.islandPages?.includes(componentId);
       if (options.dev) {
         const devCss = await options.devCss?.(request, env, {
           kind: 'pages',
           componentId,
           rootPhases: options.devRootPhases?.[componentId] ?? [],
         });
-        return { ...empty, devCss: Array.isArray(devCss) ? (devCss as Array<DevCssAsset>) : [] };
+        return {
+          ...empty,
+          ...(islands && { preloads: script('/@vite/client'), body: script(options.entryUrl) }),
+          devCss: Array.isArray(devCss) ? (devCss as Array<DevCssAsset>) : [],
+        };
       }
       const manifest = await loadManifest(request, env);
       const css = collectRouteCss(manifest ?? {}, options.pageCssKeys?.[componentId] ?? []);
+      const entry = islands ? manifest?.[options.entryId] : undefined;
       return {
         ...empty,
+        ...(entry?.file && {
+          preloads: collectManifestFiles(manifest!, options.entryId, false)
+            .flatMap((id) =>
+              id !== options.entryId && manifest![id]?.file ? [manifest![id].file!] : [],
+            )
+            .map((file) => `<link rel="modulepreload" href="/${escapeAttribute(file)}">`)
+            .join('\n'),
+          body: script('/' + entry.file),
+        }),
         css: [...css]
           .map((file) => `<link rel="stylesheet" href="/${escapeAttribute(file)}">`)
           .join('\n'),

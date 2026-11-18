@@ -1,10 +1,62 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import MagicString from 'magic-string';
-import { isAbsolute, join, relative } from 'pathslash';
+import { dirname, isAbsolute, join, relative } from 'pathslash';
 import { normalizePath, parseSync, transformWithOxc, type Plugin } from 'vite';
 import { staticModuleReferences } from '../shared/module-references.ts';
-import { scanPages } from './scan.ts';
+import { findIslandImports } from './island-imports.ts';
+import { createIslandManifest, generateIslandClientEntry } from './islands-plugin.ts';
+import { resolveEffectiveLayoutChain, scanPages } from './scan.ts';
+import type { PageScanResult } from './types.ts';
+
+/** The client entry that hydrates the islands of server views with hono/jsx/dom. */
+export const SERVER_ISLANDS_CLIENT_ENTRY_ID = 'virtual:void-server-islands-client';
+const ISLAND_EXTENSIONS = ['.tsx', '.jsx', '.ts', '.js'];
+
+// On the client, server JSX names resolve to hono/jsx/dom.
+const CLIENT_JSX: Record<string, string> = {
+  'void/jsx': 'hono/jsx/dom',
+  'void/jsx/jsx-runtime': 'hono/jsx/dom/jsx-runtime',
+  'void/jsx/jsx-dev-runtime': 'hono/jsx/dom/jsx-dev-runtime',
+};
+
+const HYDRATE_ISLAND = `
+async function hydrateIsland(el, mod, props) {
+  const { hydrateRoot } = await import("hono/jsx/dom/client");
+  const { jsx } = await import("hono/jsx/dom/jsx-runtime");
+  hydrateRoot(el, jsx(mod.default || mod, props));
+  el.setAttribute("data-hydrated", "true");
+}`;
+
+function serverViewFiles(scan: PageScanResult): Array<string> {
+  return [
+    ...scan.pages.filter((page) => page.serverView).map((page) => page.componentPath),
+    ...[...scan.layouts, ...scan.namedLayouts]
+      .filter((layout) => layout.serverView)
+      .map((layout) => layout.filePath),
+  ];
+}
+
+function hasIslands(file: string): boolean {
+  return findIslandImports(readFileSync(file, 'utf8'), file).length > 0;
+}
+
+/** Server pages whose page or layouts import an island. They load the islands client entry. */
+export function serverIslandPages(scan: PageScanResult, pagesDir: string): Array<string> {
+  const layouts = scan.layouts.filter((layout) => layout.serverView);
+  const namedLayouts = scan.namedLayouts.filter((layout) => layout.serverView);
+  return scan.pages
+    .filter(
+      (page) =>
+        page.serverView &&
+        [
+          page.componentPath,
+          ...resolveEffectiveLayoutChain(page, layouts, namedLayouts).map((l) => l.filePath),
+        ].some((file) => hasIslands(join(pagesDir, file))),
+    )
+    .map((page) => page.componentId);
+}
 
 export const SERVER_VIEW_QUERY = '?void-server-view';
 const STYLE_QUERY = '?void-server-view-styles';
@@ -87,6 +139,23 @@ export function serverComponentsPlugin(root: string, pagesDir: string): Array<Pl
     ].map((file) => serverViewStyleId(join(pagesDir, file)));
   }
 
+  const islandManifest = createIslandManifest(root, ISLAND_EXTENSIONS);
+  let isDev = false;
+  async function registerIslands(): Promise<boolean> {
+    if (!existsSync(pagesDir)) {
+      return false;
+    }
+    const scan = await scanPages(root, { pagesDir, environment: isDev ? 'dev' : 'prod' });
+    for (const file of serverViewFiles(scan)) {
+      const filePath = join(pagesDir, file);
+      for (const item of findIslandImports(readFileSync(filePath, 'utf8'), filePath)) {
+        islandManifest.register(item.specifier, dirname(filePath), item.hydrate);
+      }
+    }
+    return islandManifest.entries.size > 0;
+  }
+  const voidFile = fileURLToPath(import.meta.url);
+
   return [
     {
       name: 'void:server-components',
@@ -95,6 +164,7 @@ export function serverComponentsPlugin(root: string, pagesDir: string): Array<Pl
       configEnvironment: {
         order: 'post',
         async handler(name, config, env) {
+          isDev = env.command === 'serve';
           if (env.command === 'serve' && name !== 'client') {
             // Keep hono/jsx, its automatic runtimes and hono/html on the same
             // module graph as the renderer. Optimizing a bare JSX subpath
@@ -119,6 +189,9 @@ export function serverComponentsPlugin(root: string, pagesDir: string): Array<Pl
           return;
         }
         const styles = await styleEntries();
+        if (await registerIslands()) {
+          styles.push(SERVER_ISLANDS_CLIENT_ENTRY_ID);
+        }
         if (!styles.length) {
           return;
         }
@@ -140,6 +213,16 @@ export function serverComponentsPlugin(root: string, pagesDir: string): Array<Pl
       },
 
       async resolveId(source, importer) {
+        if (source === SERVER_ISLANDS_CLIENT_ENTRY_ID) {
+          return '\0' + source;
+        }
+        if (this.environment.name === 'client' && Object.hasOwn(CLIENT_JSX, source)) {
+          return this.resolve(CLIENT_JSX[source], voidFile, { skipSelf: true });
+        }
+        if (this.environment.name === 'client' && source.startsWith('hono/jsx/dom')) {
+          // The islands client entry imports hono through Void, which depends on it.
+          return this.resolve(source, voidFile, { skipSelf: true });
+        }
         if (source.startsWith(GUARD)) {
           if (this.environment.name === 'client') {
             this.error('Void server hook guards cannot be imported by client code.');
@@ -182,6 +265,17 @@ export function serverComponentsPlugin(root: string, pagesDir: string): Array<Pl
       },
 
       async load(id) {
+        if (id === '\0' + SERVER_ISLANDS_CLIENT_ENTRY_ID) {
+          await registerIslands();
+          return generateIslandClientEntry({
+            manifest: islandManifest,
+            cssFiles: new Set(),
+            styles: [],
+            needsRuntime: true,
+            isDev,
+            hydrateIsland: HYDRATE_ISLAND,
+          });
+        }
         if (id === '\0void:empty-server-view-style') {
           return '';
         }
@@ -270,6 +364,25 @@ export function serverComponentsPlugin(root: string, pagesDir: string): Array<Pl
           ) {
             redirect({ ...moduleRequest, value: moduleRequest.value });
           }
+        }
+        // Islands: render the component here and mark it for the islands client entry.
+        const islands = findIslandImports(code, filename);
+        islands.forEach((item, index) => {
+          const raw = `__void_island_${index}`;
+          const { islandId } = islandManifest.register(
+            item.specifier,
+            dirname(filename),
+            item.hydrate,
+          );
+          guard.overwrite(item.start, item.end, `import ${raw} from ${item.specifierRaw};`);
+          guard.append(
+            `\nfunction ${item.importName}(props) { return __void_island_jsx("div", { "data-island": ${JSON.stringify(islandId)}, "data-props": __void_island_props(props), "data-hydrate": ${JSON.stringify(item.hydrate)}, children: __void_island_jsx(${raw}, props) }); }`,
+          );
+        });
+        if (islands.length) {
+          guard.prepend(
+            'import { jsx as __void_island_jsx } from "void/jsx/jsx-runtime";\nimport { serializePageData as __void_island_props } from "void/pages-server";\n',
+          );
         }
         return transformWithOxc(
           guard.toString(),

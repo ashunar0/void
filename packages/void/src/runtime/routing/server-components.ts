@@ -69,6 +69,6 @@ export function createServerViewRenderer(
     // Hono's html helper resolves promises anywhere in the JSX tree and escapes text.
     const body = (await html`${content}`).toString();
     const head = page.head;
-    return `<!doctype html><html${head ? renderHtmlAttrs(head) : ''}><head>${head ? renderHeadToString(head) : ''}${assets.css}</head><body${head ? renderBodyAttrs(head) : ''}>${body}</body></html>`;
+    return `<!doctype html><html${head ? renderHtmlAttrs(head) : ''}><head>${head ? renderHeadToString(head) : ''}${assets.css}${assets.preloads}</head><body${head ? renderBodyAttrs(head) : ''}>${body}${assets.body}</body></html>`;
   };
 }
